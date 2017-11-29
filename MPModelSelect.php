@@ -123,7 +123,7 @@ class MPModelSelect extends InputWidget
                 $valueDesc = $queryValueDesc->all();
 
                 if (!empty($valueDesc)) {
-                    $valueDesc = ArrayHelper::map($valueDesc, 'id', 'title');
+                    $valueDesc = ArrayHelper::map($valueDesc, $this->valueField, $this->titleField);
                 }
             }
         }
