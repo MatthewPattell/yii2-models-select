@@ -9,7 +9,7 @@
 namespace MP\SelectModel;
 
 use Yii;
-use kartik\widgets\Select2;
+use kartik\select2\Select2;
 use yii\base\InvalidConfigException;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
