@@ -72,7 +72,7 @@ class MPModelSelect extends InputWidget
     /**
      * @inheritdoc
      */
-    public function init(): void
+    public function init()
     {
         parent::init();
 
@@ -169,7 +169,7 @@ class MPModelSelect extends InputWidget
      *
      * @return void
      */
-    private function registerAsset(): void
+    private function registerAsset()
     {
         $formatJs = <<<JS
 let formatModel = function (model) {
