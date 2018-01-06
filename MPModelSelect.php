@@ -117,13 +117,15 @@ class MPModelSelect extends InputWidget
         if (!empty($this->value) && $this->autoFillValue) {
             $queryValueDesc = ($this->searchModel)::find()->where([$this->valueField => $this->value]);
 
-            if (is_string($this->value)) {
-                $valueDesc = $queryValueDesc->one()->{$this->titleField} ?? NULL;
-            } elseif (is_array($this->value)) {
-                $valueDesc = $queryValueDesc->all();
+            if (!empty($this->value) && $this->value != 0) {
+                if (is_array($this->value)) {
+                    $valueDesc = $queryValueDesc->all();
 
-                if (!empty($valueDesc)) {
-                    $valueDesc = ArrayHelper::map($valueDesc, $this->valueField, $this->titleField);
+                    if (!empty($valueDesc)) {
+                        $valueDesc = ArrayHelper::map($valueDesc, $this->valueField, $this->titleField);
+                    }
+                } else {
+                    $valueDesc = $queryValueDesc->one()->{$this->titleField} ?? NULL;
                 }
             }
         }
