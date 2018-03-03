@@ -16,6 +16,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
+use yii\helpers\Json;
 use yii\widgets\InputWidget;
 
 /**
@@ -130,6 +131,18 @@ class MPModelSelect extends InputWidget
             }
         }
 
+        $requestData = [
+            'q'    => new JsExpression('params.term'),
+            'page' => new JsExpression('params.page'),
+        ];
+
+        foreach ($this->searchFields as $searchField => $relatedInputSelect) {
+            if (is_string($searchField) && $relatedInputSelect instanceof JsExpression) {
+                $requestData[$searchField]        = $relatedInputSelect;
+                $this->searchFields[$searchField] = $searchField;
+            }
+        }
+
         $options = [
             'attribute'     => $this->attribute,
             'name'          => $this->name,
@@ -145,7 +158,7 @@ class MPModelSelect extends InputWidget
                     'dataType'       => 'json',
                     'delay'          => 250,
                     'method'         => 'POST',
-                    'data'           => new JsExpression('function(params) { return {q:params.term, page: params.page}; }'),
+                    'data'           => new JsExpression('function(params) { return ' . Json::encode($requestData) . '; }'),
                     'processResults' => new JsExpression('function (data, params) {
                                         params.page = params.page || 1;
                                         return {

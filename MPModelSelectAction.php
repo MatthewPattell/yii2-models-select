@@ -58,8 +58,12 @@ class MPModelSelectAction extends Action
 
             $modelQuery = $modelClassName::find();
 
-            foreach ($data['searchFields'] as $searchField) {
-                $modelQuery->orWhere(['LIKE', $searchField, $term]);
+            foreach ($data['searchFields'] as $key => $searchField) {
+                if ($key === $searchField) {
+                    $modelQuery->andWhere([$key => Yii::$app->request->post($key, NULL)]);
+                } elseif ($key !== $searchField) {
+                    $modelQuery->orWhere(['LIKE', $searchField, $term]);
+                }
             }
 
             $count = $modelQuery->count();
