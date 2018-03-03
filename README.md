@@ -31,7 +31,12 @@ $form->field($model, 'attribute')->widget(MPModelSelect::class, [
     'searchModel'     => YouActiveRecordModel::class,
     'valueField'      => 'id',
     'titleField'      => 'title',
-    'searchFields'    => ['id', 'title'],
+    'searchFields'    => [
+        // convert to orWhere 'id' => query-string and etc.
+        'id', 'title', 
+        // add related input (will be added to data request and converto to andWhere 'category_id' => request value)
+        'category_id' => new JsExpression('$("#category-id").val()'),
+    ],
     'dropdownOptions' => [
         'options'       => [
             'placeholder' => Yii::t('app', 'Select models ...'),
