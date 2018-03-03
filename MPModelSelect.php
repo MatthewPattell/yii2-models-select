@@ -61,7 +61,14 @@ class MPModelSelect extends InputWidget
      *  [
      *      'category_id' => [
      *          new JsExpression('$("#category-id").val()'),
-     *          'select' => '#category-id', // Required. jQuery select related input by this field and add change trigger
+     *          'select' => '#category-id', // Required if previous key is JsExpression. jQuery select related input by this field and add change trigger
+     *          'reset' => true, // reset field after related input change
+     *      ],
+     *  ]
+     *  or
+     *  [
+     *      'category_id' => [
+     *          '#category-id',
      *          'reset' => true, // reset field after related input change
      *      ],
      *  ]
@@ -257,11 +264,20 @@ JS;
         if ($relatedInputSelect instanceof JsExpression) {
             return $relatedInputSelect;
         } elseif (is_array($relatedInputSelect)) {
-            if (!empty($relatedInputSelect['reset']) && $relatedInputSelect['reset'] === true) {
-                $this->view->registerJs("$('{$relatedInputSelect['select']}').change(function () { $('#{$this->options['id']}').val('').trigger('change'); });");
+            $expressionValue = $relatedInputSelect[0];
+            $selectId        = $relatedInputSelect['select'] ?? NULL;
+
+            if (!$relatedInputSelect[0] instanceof JsExpression) {
+                $expressionValue = new JsExpression("$('$relatedInputSelect[0]').val()");
+                $selectId        = $relatedInputSelect[0];
+
             }
 
-            return $relatedInputSelect[0];
+            if (!empty($relatedInputSelect['reset']) && $relatedInputSelect['reset'] === true) {
+                $this->view->registerJs("$('$selectId').change(function () { $('#{$this->options['id']}').val('').trigger('change'); });");
+            }
+
+            return $expressionValue;
         }
 
         return NULL;
