@@ -36,6 +36,7 @@ $form->field($model, 'attribute')->widget(MPModelSelect::class, [
         'id', 'title', 
         // add related input (will be added to data request and conver to ->andWhere 'category_id' => request value)
         'category_id' => new JsExpression('$("#category-id").val()'),
+        // more examples see MPModelSelect::searchFields
     ],
     'dropdownOptions' => [
         'options'       => [

@@ -46,6 +46,26 @@ class MPModelSelect extends InputWidget
     public $valueField;
 
     /**
+     * Example:
+     *
+     * - search by id or title
+     *  [
+     *      'id', 'title',
+     *  ]
+     *
+     * - search by related input
+     *  [
+     *      'category_id' => new JsExpression('$("#category-id").val()'),
+     *  ]
+     *  or
+     *  [
+     *      'category_id' => [
+     *          new JsExpression('$("#category-id").val()'),
+     *          'select' => '#category-id', // Required. jQuery select related input by this field and add change trigger
+     *          'reset' => true, // reset field after related input change
+     *      ],
+     *  ]
+     *
      * @var array
      */
     public $searchFields;
@@ -137,6 +157,8 @@ class MPModelSelect extends InputWidget
         ];
 
         foreach ($this->searchFields as $searchField => $relatedInputSelect) {
+            $relatedInputSelect = $this->handleSeachField($relatedInputSelect);
+
             if (is_string($searchField) && $relatedInputSelect instanceof JsExpression) {
                 $requestData[$searchField]        = $relatedInputSelect;
                 $this->searchFields[$searchField] = $searchField;
@@ -221,5 +243,27 @@ JS;
             'valueField'   => $this->valueField,
             'searchFields' => $this->searchFields,
         ]), $this->encryptionKey);
+    }
+
+    /**
+     * Handle search field value
+     *
+     * @param $relatedInputSelect
+     *
+     * @return NULL|JsExpression
+     */
+    private function handleSeachField($relatedInputSelect)
+    {
+        if ($relatedInputSelect instanceof JsExpression) {
+            return $relatedInputSelect;
+        } elseif (is_array($relatedInputSelect)) {
+            if (!empty($relatedInputSelect['reset']) && $relatedInputSelect['reset'] === true) {
+                $this->view->registerJs("$('{$relatedInputSelect['select']}').change(function () { $('#{$this->options['id']}').val('').trigger('change'); });");
+            }
+
+            return $relatedInputSelect[0];
+        }
+
+        return NULL;
     }
 }
