@@ -60,10 +60,9 @@ class MPModelSelectAction extends Action
         if (mb_strlen($term) >= $this->minQueryLength) {
             /** @var ActiveRecord $modelClassName */
             $modelClassName = $data['model'];
+            $modelQuery     = $modelClassName::find();
+            $termQuery      = new Query();
 
-            $modelQuery = $modelClassName::find();
-
-            $termQuery = new Query();
             foreach ($data['searchFields'] as $key => $searchField) {
                 if ($key === $searchField) {
                     $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
@@ -71,6 +70,7 @@ class MPModelSelectAction extends Action
                     $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
                 }
             }
+
             if ($termQuery->where !== NULL) {
                 $modelQuery->andWhere($termQuery->where);
             }
