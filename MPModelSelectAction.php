@@ -13,6 +13,7 @@ use yii\base\Action;
 use yii\base\InvalidConfigException;
 use yii\data\Pagination;
 use yii\db\ActiveRecord;
+use yii\db\Query;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -24,6 +25,11 @@ use yii\web\Response;
  */
 class MPModelSelectAction extends Action
 {
+    /**
+     * @var int
+     */
+    public $minQueryLength = 1;
+
     /**
      * Search models
      *
@@ -51,19 +57,22 @@ class MPModelSelectAction extends Action
             throw new NotFoundHttpException();
         }
 
-        if (!empty($term)) {
-
+        if (mb_strlen($term) >= $this->minQueryLength) {
             /** @var ActiveRecord $modelClassName */
             $modelClassName = $data['model'];
-
-            $modelQuery = $modelClassName::find();
+            $modelQuery     = $modelClassName::find();
+            $termQuery      = new Query();
 
             foreach ($data['searchFields'] as $key => $searchField) {
                 if ($key === $searchField) {
-                    $modelQuery->andWhere([$key => Yii::$app->request->post($key, NULL)]);
+                    $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
                 } elseif ($key !== $searchField) {
-                    $modelQuery->orWhere(['LIKE', $searchField, $term]);
+                    $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
                 }
+            }
+
+            if ($termQuery->where !== NULL) {
+                $modelQuery->andWhere($termQuery->where);
             }
 
             $count = $modelQuery->count();
@@ -81,8 +90,8 @@ class MPModelSelectAction extends Action
 
             foreach ($models as $model) {
                 $items[] = [
-                    'id'        => $model->{$data['valueField']},
-                    'title'     => $model->{$data['titleField']},
+                    'id'    => $model->{$data['valueField']},
+                    'title' => $model->{$data['titleField']},
                 ];
             }
         }
