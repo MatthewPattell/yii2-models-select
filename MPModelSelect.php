@@ -223,7 +223,7 @@ let formatModel = function (model) {
     let markup =
 '<div class="row">' + 
     '<div class="col-sm-12">' +
-        '<b style="margin-left:5px">' + model.title + '</b>' + 
+        '<b style="margin-left:5px">' + (model.title !== undefined ? model.title : model.text) + '</b>' + 
     '</div>' +
 '</div>';
 
