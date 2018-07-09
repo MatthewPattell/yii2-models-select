@@ -72,6 +72,8 @@ class MPModelSelect extends InputWidget
      *          'reset' => true, // reset field after related input change
      *      ],
      *  ]
+     *  or
+     *  'category_id' => new JsExpression(9), // transform to: andWhere([category_id => 9])
      *
      * @var array
      */
