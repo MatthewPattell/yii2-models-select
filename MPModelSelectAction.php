@@ -13,6 +13,7 @@ use yii\base\Action;
 use yii\base\InvalidConfigException;
 use yii\data\Pagination;
 use yii\db\ActiveRecord;
+use yii\db\ActiveQuery;
 use yii\db\Query;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -29,6 +30,16 @@ class MPModelSelectAction extends Action
      * @var int
      */
     public $minQueryLength = 1;
+
+    /**
+     * @var int
+     */
+    public $pageSize = 30;
+
+    /**
+     * @var array
+     */
+    protected $data;
 
     /**
      * Search models
@@ -53,12 +64,12 @@ class MPModelSelectAction extends Action
         $items = [];
         $count = 0;
 
-        if (empty($data) || empty($data = json_decode($data, true))) {
+        if (empty($data) || empty($this->data = json_decode($data, true))) {
             throw new NotFoundHttpException();
         }
 
         if (mb_strlen($term) >= $this->minQueryLength) {
-            list($items, $count) = $this->searchModels($data, $term, $page);
+            list($items, $count) = $this->searchModels($term, $page);
         }
 
         return [
@@ -70,20 +81,19 @@ class MPModelSelectAction extends Action
     /**
      * Find models
      *
-     * @param array $data
      * @param mixed $term
      * @param int   $page
      *
      * @return array
      */
-    public function searchModels(array $data, $term, int $page): array
+    protected function searchModels($term, int $page): array
     {
         /** @var ActiveRecord $modelClassName */
-        $modelClassName = $data['model'];
+        $modelClassName = $this->data['model'];
         $modelQuery     = $modelClassName::find();
         $termQuery      = new Query();
 
-        foreach ($data['searchFields'] as $key => $searchField) {
+        foreach ($this->data['searchFields'] as $key => $searchField) {
             if ($key === $searchField) {
                 $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
             } elseif ($key !== $searchField) {
@@ -96,12 +106,27 @@ class MPModelSelectAction extends Action
         }
 
         $count = $modelQuery->count();
+        $items = $this->getItems($modelQuery, $count, $page);
 
+        return [$items, $count];
+    }
+
+    /**
+     * Get model items
+     *
+     * @param ActiveQuery $modelQuery
+     * @param int         $count
+     * @param int         $page
+     *
+     * @return array
+     */
+    protected function getItems($modelQuery, int $count, int $page): array
+    {
         $paginationModels = new Pagination([
             'totalCount'      => $count,
-            'defaultPageSize' => 30,
+            'defaultPageSize' => $this->pageSize,
             'page'            => $page,
-        ]);
+        ]);;
 
         $models = $modelQuery
             ->limit($paginationModels->limit)
@@ -112,11 +137,11 @@ class MPModelSelectAction extends Action
 
         foreach ($models as $model) {
             $items[] = [
-                'id'    => $model->{$data['valueField']},
-                'title' => $model->{$data['titleField']},
+                'id'    => $model->{$this->data['valueField']},
+                'title' => $model->{$this->data['titleField']},
             ];
         }
 
-        return [$items, $count];
+        return $items;
     }
 }
