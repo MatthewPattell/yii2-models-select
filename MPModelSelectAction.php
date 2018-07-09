@@ -49,7 +49,7 @@ class MPModelSelectAction extends Action
 
         $data  = Yii::$app->getSecurity()->decryptByKey(Yii::$app->request->get('mpDataMS'), $encryptionKey);
         $term  = Yii::$app->request->post('q');
-        $page  = Yii::$app->request->post('page');
+        $page  = Yii::$app->request->post('page', 0);
         $items = [];
         $count = 0;
 
