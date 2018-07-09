@@ -58,47 +58,65 @@ class MPModelSelectAction extends Action
         }
 
         if (mb_strlen($term) >= $this->minQueryLength) {
-            /** @var ActiveRecord $modelClassName */
-            $modelClassName = $data['model'];
-            $modelQuery     = $modelClassName::find();
-            $termQuery      = new Query();
-
-            foreach ($data['searchFields'] as $key => $searchField) {
-                if ($key === $searchField) {
-                    $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
-                } elseif ($key !== $searchField) {
-                    $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
-                }
-            }
-
-            if ($termQuery->where !== NULL) {
-                $modelQuery->andWhere($termQuery->where);
-            }
-
-            $count = $modelQuery->count();
-
-            $paginationModels = new Pagination([
-                'totalCount'      => $count,
-                'defaultPageSize' => 30,
-                'page'            => $page,
-            ]);
-
-            $models = $modelQuery
-                ->limit($paginationModels->limit)
-                ->offset($paginationModels->offset)
-                ->all();
-
-            foreach ($models as $model) {
-                $items[] = [
-                    'id'    => $model->{$data['valueField']},
-                    'title' => $model->{$data['titleField']},
-                ];
-            }
+            list($items, $count) = $this->searchModels($data, $term, $page);
         }
 
         return [
             'total_count' => $count,
             'items'       => $items,
         ];
+    }
+
+    /**
+     * Find models
+     *
+     * @param array $data
+     * @param mixed $term
+     * @param int   $page
+     *
+     * @return array
+     */
+    public function searchModels(array $data, $term, int $page): array
+    {
+        /** @var ActiveRecord $modelClassName */
+        $modelClassName = $data['model'];
+        $modelQuery     = $modelClassName::find();
+        $termQuery      = new Query();
+
+        foreach ($data['searchFields'] as $key => $searchField) {
+            if ($key === $searchField) {
+                $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
+            } elseif ($key !== $searchField) {
+                $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
+            }
+        }
+
+        if ($termQuery->where !== NULL) {
+            $modelQuery->andWhere($termQuery->where);
+        }
+
+        $count = $modelQuery->count();
+
+        $paginationModels = new Pagination([
+            'totalCount'      => $count,
+            'defaultPageSize' => 30,
+            'page'            => $page,
+        ]);
+
+        $models = $modelQuery
+            ->limit($paginationModels->limit)
+            ->offset($paginationModels->offset)
+            ->all();
+
+        $items = [];
+
+        foreach ($models as $model) {
+            $items[] = [
+                'id'    => $model->{$data['valueField']},
+                'title' => $model->{$data['titleField']},
+            ];
+        }
+
+        return [$items, $count];
     }
 }
