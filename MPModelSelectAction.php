@@ -88,25 +88,9 @@ class MPModelSelectAction extends Action
      */
     protected function searchModels($term, int $page): array
     {
-        /** @var ActiveRecord $modelClassName */
-        $modelClassName = $this->data['model'];
-        $modelQuery     = $modelClassName::find();
-        $termQuery      = new Query();
-
-        foreach ($this->data['searchFields'] as $key => $searchField) {
-            if ($key === $searchField) {
-                $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
-            } elseif ($key !== $searchField) {
-                $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
-            }
-        }
-
-        if ($termQuery->where !== NULL) {
-            $modelQuery->andWhere($termQuery->where);
-        }
-
-        $count = $modelQuery->count();
-        $items = $this->getItems($modelQuery, $count, $page);
+        $modelQuery = $this->getQuery($term);
+        $count      = $modelQuery->count();
+        $items      = $this->getItems($modelQuery, $count, $page);
 
         return [$items, $count];
     }
@@ -143,5 +127,34 @@ class MPModelSelectAction extends Action
         }
 
         return $items;
+    }
+
+    /**
+     * Get model search query
+     *
+     * @param mixed $term
+     *
+     * @return mixed
+     */
+    protected function getQuery($term)
+    {
+        /** @var ActiveRecord $modelClassName */
+        $modelClassName = $this->data['model'];
+        $modelQuery     = $modelClassName::find();
+        $termQuery      = new Query();
+
+        foreach ($this->data['searchFields'] as $key => $searchField) {
+            if ($key === $searchField) {
+                $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
+            } elseif ($key !== $searchField) {
+                $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
+            }
+        }
+
+        if ($termQuery->where !== NULL) {
+            $modelQuery->andWhere($termQuery->where);
+        }
+
+        return $modelQuery;
     }
 }
