@@ -37,6 +37,11 @@ class MPModelSelectAction extends Action
     public $pageSize = 30;
 
     /**
+     * @var string
+     */
+    public $tablePrefix = 'mps';
+
+    /**
      * @var array
      */
     protected $data;
@@ -117,6 +122,8 @@ class MPModelSelectAction extends Action
             ->offset($paginationModels->offset)
             ->all();
 
+        $models = $this->handleModels($models);
+
         $items = [];
 
         foreach ($models as $model) {
@@ -127,6 +134,18 @@ class MPModelSelectAction extends Action
         }
 
         return $items;
+    }
+
+    /**
+     * Handle result models hook
+     *
+     * @param array $models
+     *
+     * @return array
+     */
+    protected function handleModels($models): array
+    {
+        return $models;
     }
 
     /**
@@ -143,11 +162,13 @@ class MPModelSelectAction extends Action
         $modelQuery     = $modelClassName::find();
         $termQuery      = new Query();
 
+        $modelQuery->from([$this->tablePrefix => $modelClassName::tableName()]);
+
         foreach ($this->data['searchFields'] as $key => $searchField) {
             if ($key === $searchField) {
-                $modelQuery->andFilterWhere([$key => Yii::$app->request->post($key, NULL)]);
+                $modelQuery->andFilterWhere(["{$this->tablePrefix}.$key" => Yii::$app->request->post($key, NULL)]);
             } elseif ($key !== $searchField) {
-                $termQuery->orFilterWhere(['LIKE', $searchField, $term]);
+                $termQuery->orFilterWhere(['LIKE', "{$this->tablePrefix}.$searchField", $term]);
             }
         }
 
